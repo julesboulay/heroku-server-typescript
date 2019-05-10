@@ -3,7 +3,7 @@ import * as fs from "fs";
 import download, { Options } from "./images/imageDownloader";
 import { PlaceDetail } from "././placesDetails";
 import config from "../../config/config";
-const places_key: any = config("development").google_places_api_key;
+const places_key: any = config().google_places_api_key;
 
 const PIXELS = 300;
 
@@ -15,7 +15,7 @@ function placesPhotoQuery(photo_reference: string) {
 }
 
 export interface PhotoDetail {
-  name: string;
+  place_id: string;
   photo_reference: string;
   base64: string;
 }
@@ -60,7 +60,7 @@ function downloadPhoto(
 }
 
 function getPhoto(
-  name: string,
+  place_id: string,
   photo_reference: string,
   pipeline_error: string[]
 ): Promise<PhotoDetail> {
@@ -74,7 +74,7 @@ function getPhoto(
         });
 
         let photo_detail: PhotoDetail = {
-          name,
+          place_id,
           photo_reference,
           base64: ""
         };
@@ -102,10 +102,10 @@ export function getPlacesPhotos(
 ): Promise<PhotoDetail[]> {
   return new Promise<PhotoDetail[]>(function(resolve, reject) {
     let photos_details_promises: Promise<PhotoDetail>[] = [];
-    let { name, photos } = place_detail;
+    let { place_id, photos } = place_detail;
     for (let i = 0; i < photos.length; i++)
       photos_details_promises.push(
-        getPhoto(name, photos[i].photo_reference, pipeline_error)
+        getPhoto(place_id, photos[i].photo_reference, pipeline_error)
       );
 
     Promise.all(photos_details_promises).then(photo_details =>

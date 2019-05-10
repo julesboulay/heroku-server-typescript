@@ -10,7 +10,7 @@ import Cafe_ from "../models/cafe";
 import Eval_ from "../models/evaluation";
 
 import config from "../../config/config";
-const secret: any = config("development").secret;
+const secret: any = config().secret;
 
 const MAX_PLACES_API_CALLS = 50000;
 
@@ -44,7 +44,7 @@ export default (app: any, connection: any) => {
                   token: ""
                 };
 
-                FindCafes(query, connection);
+                FindCafes(query, Cafe, Eval);
                 res.status(resq.status).json({ message: "success" });
               })
               .catch((err: DBError) => {

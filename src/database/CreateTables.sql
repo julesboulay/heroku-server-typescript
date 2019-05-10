@@ -11,7 +11,7 @@ CREATE TABLE Cafe (
 CREATE TABLE Evaluation (
     evaluation_id INT(12) NOT NULL AUTO_INCREMENT,
     google_place_id VARCHAR(255) NOT NULL,
-    date DATE NOT NULL,
+    date DATETIME NOT NULL,
 
     PRIMARY KEY(evaluation_id),
     FOREIGN KEY(google_place_id) REFERENCES Cafe(google_place_id)
@@ -32,7 +32,7 @@ CREATE TABLE DwlQueueItem(
   place_id VARCHAR(255) NOT NULL,
   place_name VARCHAR(255) NOT NULL,
   place_suffix VARCHAR(255) NOT NULL,
-  date DATE NOT NULL,
+  date DATETIME NOT NULL,
 
   PRIMARY KEY(evaluation_id),
   FOREIGN KEY(evaluation_id) REFERENCES Evaluation(evaluation_id)
@@ -41,7 +41,7 @@ CREATE TABLE DwlQueueItem(
 CREATE TABLE ImgQueueItem(
   evaluation_id INT(12) NOT NULL,
   photo_reference VARCHAR(255) NOT NULL,
-  date DATE NOT NULL,
+  date DATETIME NOT NULL,
 
   PRIMARY KEY(photo_reference),
   FOREIGN KEY(evaluation_id) REFERENCES Evaluation(evaluation_id)
@@ -61,7 +61,7 @@ CREATE TABLE User (
     email VARCHAR(255) NOT NULL,
     username VARCHAR(20) NOT NULL,
     password VARCHAR(100) NOT NULL,
-    sign_up_date DATE NOT NULL,
+    sign_up_date DATETIME NOT NULL,
 
     PRIMARY KEY(email)
 ) ENGINE = INNODB AUTO_INCREMENT=1;
@@ -69,7 +69,7 @@ CREATE TABLE User (
 CREATE TABLE ConfirmMarzocco(
     google_place_id VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    date DATE NOT NULL,
+    date DATETIME NOT NULL,
 
     PRIMARY KEY(google_place_id, email),
     FOREIGN KEY(google_place_id) REFERENCES Cafe (google_place_id),
@@ -79,7 +79,7 @@ CREATE TABLE ConfirmMarzocco(
 CREATE TABLE Post (
     google_place_id VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    date DATE NOT NULL,
+    date DATETIME NOT NULL,
 
     PRIMARY KEY(google_place_id),
     FOREIGN KEY(google_place_id) REFERENCES Cafe(google_place_id),

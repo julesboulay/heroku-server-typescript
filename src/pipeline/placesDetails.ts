@@ -1,7 +1,7 @@
 import * as https from "https";
 import { Place } from "./placesNearby";
 import config from "../../config/config";
-const places_key: any = config("development").google_places_api_key;
+const places_key: any = config().google_places_api_key;
 
 function placesDetailsQuery(placeid: string): string {
   return (
@@ -11,9 +11,13 @@ function placesDetailsQuery(placeid: string): string {
 }
 
 export interface PlaceDetail {
-  name: string;
   place_id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  address: string;
   photos: { photo_reference: string }[];
+  address_components: [{ types: [string]; short_name: string }];
 }
 
 export function getPlaceDetails(
@@ -33,9 +37,13 @@ export function getPlaceDetails(
           var { result } = JSON.parse(body);
 
           let place_detail: PlaceDetail = {
-            name: result.name,
             place_id: result.place_id,
-            photos: result.photos || []
+            name: result.name,
+            lat: result.geometry.location.lat,
+            lng: result.geometry.location.lng,
+            address: result.formatted_address,
+            photos: result.photos || [],
+            address_components: result.address_components || []
           };
           resolve(place_detail);
         });

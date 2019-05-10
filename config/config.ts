@@ -1,7 +1,10 @@
 import Config from "./configType";
 
-export default function(env: string): Config {
-  if (env == "development") {
+export default function(): Config {
+  const DEV_ENV: string = "development";
+  const { NODE_ENV = DEV_ENV } = process.env;
+
+  if (NODE_ENV == DEV_ENV + "nop") {
     const development: Config = {
       google_places_api_key: "AIzaSyCOL-TKrDjemTBuwoNQcnpOFgMavyFErmc",
       secret: "abracadabra",

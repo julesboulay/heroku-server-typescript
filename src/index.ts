@@ -8,8 +8,8 @@ import Config from "../config/configType";
 import config from "../config/config";
 import bodyParser = require("body-parser");
 
-const { NODE_ENV = "develoent", PORT = 3000 } = process.env;
-const _config_: Config = config(NODE_ENV);
+const { PORT = 3000 } = process.env;
+const _config_: Config = config();
 
 const connection = getDBConnection(_config_);
 

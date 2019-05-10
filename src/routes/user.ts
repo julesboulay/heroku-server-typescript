@@ -6,7 +6,7 @@ import { DBResponse, DBError } from "../models/dbresponse";
 import User_ from "../models/user";
 
 import config from "../../config/config";
-const secret: any = config("development").secret;
+const secret: any = config().secret;
 
 export default (app: any, connection: any) => {
   const User = new User_(connection);

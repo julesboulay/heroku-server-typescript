@@ -1,4 +1,5 @@
 import { DBResponse, DBError } from "./dbresponse";
+import { PlaceDetail } from "../pipeline/placesDetails";
 
 export default class Cafe {
   static con: any;
@@ -107,6 +108,37 @@ export default class Cafe {
       reject: (err: DBError) => any
     ) {
       Cafe.con.query(query, function(error: any, result: any) {
+        if (error) {
+          reject({ status: 500, message: error.message });
+        } else {
+          resolve({ status: 200, result: {} });
+        }
+      });
+    });
+  }
+
+  saveCafes(place_details: PlaceDetail[]): Promise<DBResponse> {
+    const query = `
+    INSERT INTO Cafe (
+      google_place_id, 
+      place_name, 
+      lat, 
+      lng, 
+      address
+    ) VALUES ?`;
+
+    let insert: any = place_details.map(p => [
+      p.place_id,
+      p.name,
+      p.lat,
+      p.lng,
+      p.address
+    ]);
+    return new Promise<DBResponse>(function(
+      resolve: (res: DBResponse) => any,
+      reject: (err: DBError) => any
+    ) {
+      Cafe.con.query(query, [insert], function(error: any, result: any) {
         if (error) {
           reject({ status: 500, message: error.message });
         } else {

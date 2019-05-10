@@ -1,6 +1,6 @@
 import * as https from "https";
 import config from "../../config/config";
-const places_key: any = config("development").google_places_api_key;
+const places_key: any = config().google_places_api_key;
 
 function placesNearbyQuery(q: Query): string {
   if (q.token == null || q.token == undefined || q.token == "") {

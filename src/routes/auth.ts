@@ -4,7 +4,7 @@ import { DBResponse, DBError } from "../models/dbresponse";
 import User_ from "../models/user";
 
 import config from "../../config/config";
-const secret: any = config("production").secret;
+const secret: any = config().secret;
 
 export interface Decode {
   status: number;

@@ -1,4 +1,6 @@
 import { DBResponse, DBError } from "./dbresponse";
+import { PlaceDetail } from "../pipeline/placesDetails";
+import { PhotoProbability } from "../pipeline/placeProbability";
 
 export default class Evaluation {
   static con: any;
@@ -35,14 +37,14 @@ export default class Evaluation {
     });
   }
 
-  saveEvaluation(google_place_id: string, date: string): Promise<DBResponse> {
+  saveEvaluation(google_place_id: string): Promise<DBResponse> {
     const query = `
     INSERT INTO Evaluation (
       google_place_id, 
       date
     ) VALUES (
         '${google_place_id}', 
-        ${date}
+        ${Evaluation.con.escape(new Date())}
     );`;
 
     return new Promise<DBResponse>(function(
@@ -50,6 +52,31 @@ export default class Evaluation {
       reject: (err: DBError) => any
     ) {
       Evaluation.con.query(query, function(error: any, result: any) {
+        if (error) {
+          reject({ status: 500, message: error.message });
+        } else {
+          resolve({ status: 200, result: {} });
+        }
+      });
+    });
+  }
+
+  saveEvaluations(place_details: PlaceDetail[]): Promise<DBResponse> {
+    const query = `
+    INSERT INTO Evaluation (
+      google_place_id, 
+      date
+    ) VALUES ?`;
+
+    let insert: any = place_details.map(p => [
+      p.place_id,
+      Evaluation.con.escape(new Date())
+    ]);
+    return new Promise<DBResponse>(function(
+      resolve: (res: DBResponse) => any,
+      reject: (err: DBError) => any
+    ) {
+      Evaluation.con.query(query, [insert], function(error: any, result: any) {
         if (error) {
           reject({ status: 500, message: error.message });
         } else {
@@ -125,6 +152,35 @@ export default class Evaluation {
         ${marzocco_likelihood}
     );`;
 
+    return new Promise<DBResponse>(function(
+      resolve: (res: DBResponse) => any,
+      reject: (err: DBError) => any
+    ) {
+      Evaluation.con.query(query, function(error: any, result: any) {
+        if (error) {
+          reject({ status: 500, message: error.message });
+        } else {
+          resolve({ status: 200, result: {} });
+        }
+      });
+    });
+  }
+
+  saveEvaluatedPictures(photo_probs: PhotoProbability[]): Promise<DBResponse> {
+    const query = `
+    INSERT INTO EvaluatedPicture (
+      google_picture_id, 
+      evaluation_id,
+      marzocco_likelihood
+    ) VALUES ?`;
+
+    let insert = photo_probs.map(p => [
+      p.photo_reference,
+      `(SELECT evaluation_id FROM Evaluation WHERE google_place_id LIKE ${
+        p.place_id
+      })`,
+      p.probability
+    ]);
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
       reject: (err: DBError) => any

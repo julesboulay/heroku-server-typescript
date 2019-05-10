@@ -1,8 +1,15 @@
 import { getPlacesNearby, Query, Place } from "./placesNearby";
 import { getPlaceDetails, PlaceDetail } from "./placesDetails";
 import { getPlacesPhotos, PhotoDetail } from "./placesPhotos";
-import { PhotoProbability, getImageProb } from "./placeProbability";
+import {
+  PhotoProbability,
+  getImageProb,
+  requestDownloadImagesProbabilities
+} from "./placeProbability";
 
+import { DBResponse, DBError } from "../models/dbresponse";
+import Cafe_ from "../models/cafe";
+import Eval_ from "../models/evaluation";
 /**
  * Search for evaluation_id during insert with google_place_id
  * Change all dates to datetime
@@ -13,7 +20,11 @@ import { PhotoProbability, getImageProb } from "./placeProbability";
 /***************************************************************************
  * The Pipeline
  */
-export default function FindCafes(query: Query, connection: any): void {
+export default function FindCafes(
+  query: Query,
+  Cafe: Cafe_,
+  Eval: Eval_
+): void {
   getPlacesNearby(query, function(places: Place[], error: string) {
     // Error Check
     let pipeline_error: string[] = [];
@@ -36,9 +47,10 @@ export default function FindCafes(query: Query, connection: any): void {
         (place_details: PlaceDetail[]): Promise<PlaceDetail[]> => {
           check_pipeline_error();
           return new Promise<PlaceDetail[]>(async function(resolve, reject) {
-            // Save Details to MySQL
-            // ####### TODO ########
-            resolve(place_details);
+            // Save Cafes to MySQL
+            Cafe.saveCafes(place_details)
+              .then((resq: DBResponse) => resolve(place_details))
+              .catch((err: DBError) => pipeline_error.push(err.message));
           });
         }
       )
@@ -46,19 +58,16 @@ export default function FindCafes(query: Query, connection: any): void {
         (place_details: PlaceDetail[]): Promise<PlaceDetail[]> => {
           return new Promise<PlaceDetail[]>(async function(resolve, reject) {
             // Save Evaluations to MySQL
-            // ####### TODO ########
-            resolve(place_details);
+            Eval.saveEvaluations(place_details)
+              .then((resq: DBResponse) => resolve(place_details))
+              .catch((err: DBError) => pipeline_error.push(err.message));
           });
         }
       )
       .then(
-        (place_details: PlaceDetail[]): Promise<PlaceDetail[]> => {
-          return new Promise<PlaceDetail[]>(async function(resolve, reject) {
-            // Send Python Download Prob Request For Every Place
-            // ####### TODO ########
-            resolve(place_details);
-          });
-        }
+        (place_details: PlaceDetail[]): Promise<PlaceDetail[]> =>
+          // Send Python Download Prob Request For Every Place
+          requestDownloadImagesProbabilities(place_details)
       )
       .then(
         (place_details: PlaceDetail[]): Promise<PhotoDetail[][]> => {
@@ -100,9 +109,9 @@ export default function FindCafes(query: Query, connection: any): void {
           check_pipeline_error();
           return new Promise<void>(async function(resolve, reject) {
             // Save Photo Evaluations to MySQL
-            // ####### TODO ########
-            console.log(photo_probs);
-            resolve();
+            Eval.saveEvaluatedPictures(photo_probs)
+              .then((resq: DBResponse) => resolve())
+              .catch((err: DBError) => pipeline_error.push(err.message));
           });
         }
       )
