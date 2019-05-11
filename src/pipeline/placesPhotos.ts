@@ -23,7 +23,6 @@ export interface PhotoDetail {
 function downloadPhoto(
   photo_detail: PhotoDetail,
   _url: string,
-  pipeline_error: string[],
   resolve: (photo: PhotoDetail) => any,
   reject: (err: any) => any
 ) {
@@ -38,13 +37,13 @@ function downloadPhoto(
     .then(() => {
       fs.readFile(options.dest, function(err, data) {
         if (err) {
-          pipeline_error.push(String(err));
+          reject(String(err));
           reject(err);
         }
 
         fs.unlink(options.dest, function(err) {
           if (err) {
-            pipeline_error.push(String(err));
+            reject(String(err));
             reject(err);
           }
         });
@@ -54,7 +53,6 @@ function downloadPhoto(
       });
     })
     .catch((err: any) => {
-      pipeline_error.push(String(err));
       reject("Error on download: " + err);
     });
 }
@@ -62,7 +60,7 @@ function downloadPhoto(
 function getPhoto(
   place_id: string,
   photo_reference: string,
-  pipeline_error: string[]
+  reject_: (s: string) => any
 ): Promise<PhotoDetail> {
   return new Promise<PhotoDetail>((resolve, reject) => {
     var url: string = placesPhotoQuery(photo_reference);
@@ -79,37 +77,30 @@ function getPhoto(
           base64: ""
         };
         response.on("end", function() {
-          downloadPhoto(
-            photo_detail,
-            photoURL,
-            pipeline_error,
-            resolve,
-            reject
-          );
+          downloadPhoto(photo_detail, photoURL, resolve, reject);
         });
       })
       .on("error", function(e) {
-        pipeline_error.push(e.message);
-        reject("Got error: " + e.message);
+        reject_("Got error: " + e.message);
       });
-  });
+  }).catch(err => reject_("Got error: " + err));
 }
 
 // Get Photos
 export function getPlacesPhotos(
   place_detail: PlaceDetail,
-  pipeline_error: string[]
+  reject_: (s: string) => any
 ): Promise<PhotoDetail[]> {
   return new Promise<PhotoDetail[]>(function(resolve, reject) {
     let photos_details_promises: Promise<PhotoDetail>[] = [];
     let { place_id, photos } = place_detail;
     for (let i = 0; i < photos.length; i++)
       photos_details_promises.push(
-        getPhoto(place_id, photos[i].photo_reference, pipeline_error)
+        getPhoto(place_id, photos[i].photo_reference, reject_)
       );
 
     Promise.all(photos_details_promises).then(photo_details =>
       resolve(photo_details)
     );
-  });
+  }).catch(err => reject_("Got error: " + err));
 }

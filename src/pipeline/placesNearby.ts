@@ -21,6 +21,9 @@ function placesNearbyQuery(q: Query): string {
 
 export interface Place {
   place_id: string;
+  name: string;
+  user_ratings_total: number;
+  rating: number;
 }
 
 export interface Query {

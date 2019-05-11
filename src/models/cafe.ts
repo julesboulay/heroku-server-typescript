@@ -22,8 +22,8 @@ export default class Cafe {
 
     const query = `
       SELECT
-        C.google_place_id, 
-        C.place_name, 
+        C.place_id, 
+        C.name, 
         C.lat, 
         C.lng, 
         C.address
@@ -41,10 +41,10 @@ export default class Cafe {
             EP.marzocco_likelihood > ${marzocco_likelihood}
           GROUP BY EP.evaluation_id
         ) OR
-        C.google_place_id IN (
-          SELECT google_place_id FROM Post))
-      GROUP BY C.google_place_id
-      ORDER BY C.google_place_id DESC;`;
+        C.place_id IN (
+          SELECT place_id FROM Post))
+      GROUP BY C.place_id
+      ORDER BY C.place_id DESC;`;
 
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
@@ -60,12 +60,12 @@ export default class Cafe {
     });
   }
 
-  getCafe(placeid: string): Promise<DBResponse> {
+  getCafe(place_id: string): Promise<DBResponse> {
     const query = `
         SELECT 
-            C.google_place_id
+            C.place_id
         FROM Cafe C
-        WHERE   C.google_place_id LIKE '${placeid}'`;
+        WHERE   C.place_id LIKE '${place_id}'`;
 
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
@@ -82,22 +82,22 @@ export default class Cafe {
   }
 
   saveCafe(
-    google_place_id: string,
-    place_name: string,
+    place_id: string,
+    name: string,
     lat: number,
     lng: number,
     address: string
   ): Promise<DBResponse> {
     const query = `
     INSERT INTO Cafe (
-      google_place_id, 
-      place_name, 
+      place_id, 
+      name, 
       lat, 
       lng, 
       address
     ) VALUES (
-        '${google_place_id}', 
-        "${place_name}", 
+        '${place_id}', 
+        "${name}", 
         ${lat}, 
         ${lng}, 
         "${address}"
@@ -118,27 +118,30 @@ export default class Cafe {
   }
 
   saveCafes(place_details: PlaceDetail[]): Promise<DBResponse> {
-    const query = `
+    let query = `
     INSERT INTO Cafe (
-      google_place_id, 
-      place_name, 
+      place_id, 
+      name, 
       lat, 
       lng, 
       address
-    ) VALUES ?`;
+    ) VALUES `;
 
-    let insert: any = place_details.map(p => [
-      p.place_id,
-      p.name,
-      p.lat,
-      p.lng,
-      p.address
-    ]);
+    place_details.map(
+      p =>
+        (query += `("${p.place_id}", "${p.name}", ${p.lat}, ${p.lng}, "${
+          p.formatted_address
+        }"),`)
+    );
+    query = query.substring(0, query.length - 1);
+
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
       reject: (err: DBError) => any
     ) {
-      Cafe.con.query(query, [insert], function(error: any, result: any) {
+      if (place_details.length == 0)
+        reject({ status: 500, message: "Input Cafe empty" });
+      Cafe.con.query(query, function(error: any, result: any) {
         if (error) {
           reject({ status: 500, message: error.message });
         } else {

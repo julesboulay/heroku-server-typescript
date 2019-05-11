@@ -1,22 +1,22 @@
 import express from "express";
 import { Request, Response } from "express";
-
-import getDBConnection from "./database/connection";
-import UserRoutes from "./routes/user";
-import CafeRoutes from "./routes/cafes";
-import Config from "../config/configType";
-import config from "../config/config";
 import bodyParser = require("body-parser");
 
-const { PORT = 3000 } = process.env;
-const _config_: Config = config();
+import UserRoutes from "./routes/user";
+import CafeRoutes from "./routes/cafes";
+import ProbRoutes from "./routes/predictions";
 
-const connection = getDBConnection(_config_);
+import getDBConnection from "./database/connection";
+import config from "../config/config";
+
+const { PORT = 3000 } = process.env;
+const connection = getDBConnection(config());
 
 const app = express();
 app.use(bodyParser.json());
 UserRoutes(app, connection);
 CafeRoutes(app, connection);
+ProbRoutes(app, connection);
 app.get("/health", (req: Request, res: Response) => {
   res.send({ message: "success", data: "Not DeaD YET!" });
 });

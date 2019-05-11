@@ -64,14 +64,14 @@ export default class User {
     });
   }
 
-  savePost(google_place_id: string, email: string): Promise<DBResponse> {
+  savePost(place_id: string, email: string): Promise<DBResponse> {
     const query = `
-    INSERT INTO Evaluation (
-      google_place_id, 
+    INSERT INTO Post (
+      place_id, 
       email,
-      date
+      post_date
     ) VALUES (
-        '${google_place_id}', 
+        '${place_id}', 
         '${email}',
         ${User.con.escape(new Date())}
     );`;

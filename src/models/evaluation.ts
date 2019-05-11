@@ -9,13 +9,13 @@ export default class Evaluation {
     Evaluation.con = connection;
   }
 
-  getEvaluationsThisMonth(MAX_PLACES_API_CALLS: number): Promise<DBResponse> {
+  getEvaluationsThisMonth(): Promise<DBResponse> {
     const query = `
     SELECT evaluation_id 
     FROM Evaluation
     WHERE  
-        MONTH(date) = MONTH(CURRENT_DATE()) AND
-        YEAR(date) = YEAR(CURRENT_DATE());`;
+        MONTH(evaluation_date) = MONTH(CURRENT_DATE()) AND
+        YEAR(evaluation_date) = YEAR(CURRENT_DATE());`;
 
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
@@ -25,25 +25,19 @@ export default class Evaluation {
         if (error) {
           reject({ status: 500, message: error.message });
         } else {
-          let evals = result.length;
-          let num_of_api_calls_this_month = evals + evals + 10 * evals;
-          if (num_of_api_calls_this_month > MAX_PLACES_API_CALLS) {
-            reject({ status: 429, message: "Number of API calls exceeded." });
-          } else {
-            resolve({ status: 200, result: {} });
-          }
+          resolve({ status: 200, result: result });
         }
       });
     });
   }
 
-  saveEvaluation(google_place_id: string): Promise<DBResponse> {
+  saveEvaluation(place_id: string): Promise<DBResponse> {
     const query = `
     INSERT INTO Evaluation (
-      google_place_id, 
-      date
+      place_id, 
+      evaluation_date
     ) VALUES (
-        '${google_place_id}', 
+        '${place_id}', 
         ${Evaluation.con.escape(new Date())}
     );`;
 
@@ -62,21 +56,24 @@ export default class Evaluation {
   }
 
   saveEvaluations(place_details: PlaceDetail[]): Promise<DBResponse> {
-    const query = `
+    let query = `
     INSERT INTO Evaluation (
-      google_place_id, 
-      date
-    ) VALUES ?`;
+      place_id, 
+      evaluation_date
+    ) VALUES `;
 
-    let insert: any = place_details.map(p => [
-      p.place_id,
-      Evaluation.con.escape(new Date())
-    ]);
+    place_details.map(
+      p => (query += `("${p.place_id}", ${Evaluation.con.escape(new Date())}),`)
+    );
+    query = query.substring(0, query.length - 1);
+
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
       reject: (err: DBError) => any
     ) {
-      Evaluation.con.query(query, [insert], function(error: any, result: any) {
+      if (place_details.length == 0)
+        reject({ status: 500, message: "Input Evaluation empty" });
+      Evaluation.con.query(query, function(error: any, result: any) {
         if (error) {
           reject({ status: 500, message: error.message });
         } else {
@@ -86,11 +83,11 @@ export default class Evaluation {
     });
   }
 
-  static getEvaluation(google_place_id: string): Promise<DBResponse> {
+  static getEvaluation(place_id: string): Promise<DBResponse> {
     const query = `
     SELECT E.evaluation_id 
     FROM Evaluation E
-    WHERE E.google_place_id LIKE '${google_place_id}';`;
+    WHERE E.place_id LIKE '${place_id}';`;
 
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
@@ -137,17 +134,17 @@ export default class Evaluation {
   }
 
   saveEvaluatedPicture(
-    photo_id: string,
+    photo_reference: string,
     evaluation_id: number,
     marzocco_likelihood: number
   ): Promise<DBResponse> {
     const query = `
     INSERT INTO EvaluatedPicture (
-      google_picture_id, 
+      photo_reference, 
       evaluation_id,
       marzocco_likelihood
     ) VALUES (
-        "${photo_id}", 
+        "${photo_reference}", 
         '${evaluation_id}',
         ${marzocco_likelihood}
     );`;
@@ -167,24 +164,29 @@ export default class Evaluation {
   }
 
   saveEvaluatedPictures(photo_probs: PhotoProbability[]): Promise<DBResponse> {
-    const query = `
+    let query = `
     INSERT INTO EvaluatedPicture (
-      google_picture_id, 
+      photo_reference, 
       evaluation_id,
       marzocco_likelihood
-    ) VALUES ?`;
+    ) VALUES `;
 
-    let insert = photo_probs.map(p => [
-      p.photo_reference,
-      `(SELECT evaluation_id FROM Evaluation WHERE google_place_id LIKE ${
-        p.place_id
-      })`,
-      p.probability
-    ]);
+    photo_probs.map(
+      p =>
+        (query += `("${
+          p.photo_reference
+        }",(SELECT evaluation_id FROM Evaluation WHERE place_id LIKE "${
+          p.place_id
+        }"), "${p.marzocco_likelihood}"),`)
+    );
+    query = query.substring(0, query.length - 1);
+
     return new Promise<DBResponse>(function(
       resolve: (res: DBResponse) => any,
       reject: (err: DBError) => any
     ) {
+      if (photo_probs.length == 0)
+        reject({ status: 500, message: "Input EvaluatedPictures empty" });
       Evaluation.con.query(query, function(error: any, result: any) {
         if (error) {
           reject({ status: 500, message: error.message });

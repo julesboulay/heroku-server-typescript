@@ -15,14 +15,14 @@ export interface PlaceDetail {
   name: string;
   lat: number;
   lng: number;
-  address: string;
-  photos: { photo_reference: string }[];
+  formatted_address: string;
+  photos: [{ photo_reference: string }];
   address_components: [{ types: [string]; short_name: string }];
 }
 
 export function getPlaceDetails(
   place: Place,
-  pipeline_error: string[]
+  reject: (s: string) => any
 ): Promise<PlaceDetail> {
   return new Promise<PlaceDetail>((resolve, reject) => {
     var url: string = placesDetailsQuery(place.place_id);
@@ -35,13 +35,12 @@ export function getPlaceDetails(
 
         response.on("end", function() {
           var { result } = JSON.parse(body);
-
           let place_detail: PlaceDetail = {
             place_id: result.place_id,
             name: result.name,
             lat: result.geometry.location.lat,
             lng: result.geometry.location.lng,
-            address: result.formatted_address,
+            formatted_address: result.formatted_address,
             photos: result.photos || [],
             address_components: result.address_components || []
           };
@@ -49,7 +48,7 @@ export function getPlaceDetails(
         });
       })
       .on("error", function(e: any) {
-        pipeline_error.push(e.message);
+        reject(e.message);
         reject("Got error: " + e.message);
       });
   });

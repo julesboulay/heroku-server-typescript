@@ -6,11 +6,11 @@ import { PlaceDetail } from "./placesDetails";
 export interface PhotoProbability {
   place_id: string;
   photo_reference: string;
-  probability: number;
+  marzocco_likelihood: number;
 }
 
 function determinePlaceSuffix(place_detail: PlaceDetail): string {
-  let suffix: string = "";
+  let suffix: string = " ,";
   if (place_detail.address_components)
     place_detail.address_components.map(({ types, short_name }) => {
       if (types)
@@ -38,7 +38,7 @@ export function requestDownloadImagesProbabilities(
     });
     // 2. Python Download IMGs Predictions
     request.post(
-      config().python_server + "/predictdownload",
+      config().python_server.url + "/predictdownload",
       {
         json: { places: place_requests }
       },
@@ -60,33 +60,33 @@ export function requestDownloadImagesProbabilities(
 // Python Request for Photo
 export function getImageProb(
   photo_detail: PhotoDetail,
-  pipeline_error: string[]
+  reject_: (s: string) => any
 ): Promise<PhotoProbability> {
   return new Promise<PhotoProbability>((resolve, reject) => {
     const { place_id, base64, photo_reference } = photo_detail;
 
     request.post(
-      config().python_server + "/predictimage",
+      config().python_server.url + "/predictimage",
       {
         json: {
           type: "Buffer",
-          photo_id: photo_reference,
+          photo_reference: photo_reference,
           data: base64
         }
       },
       function(error, res, body) {
         if (error) {
-          pipeline_error.push(error);
+          reject_(error);
         } else if (!body.message) {
-          pipeline_error.push("Heroku Internal Error");
+          reject_("Heroku Internal Error");
         } else if (body.message != "success") {
-          pipeline_error.push(body.error);
+          reject_(body.error);
         } else {
           const { marzocco_probability } = body;
           let photo_prob: PhotoProbability = {
             place_id,
             photo_reference,
-            probability: marzocco_probability
+            marzocco_likelihood: marzocco_probability
           };
           resolve(photo_prob);
         }
