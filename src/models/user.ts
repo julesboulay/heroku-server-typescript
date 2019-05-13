@@ -89,4 +89,30 @@ export default class User {
       });
     });
   }
+
+  saveConrifmMarzocco(place_id: string, email: string): Promise<DBResponse> {
+    const query = `
+    INSERT INTO ConfirmMarzocco (
+      place_id, 
+      email,
+      post_date
+    ) VALUES (
+        '${place_id}', 
+        '${email}',
+        ${User.con.escape(new Date())}
+    );`;
+
+    return new Promise<DBResponse>(function(
+      resolve: (res: DBResponse) => any,
+      reject: (err: DBError) => any
+    ) {
+      User.con.query(query, function(error: any, result: any) {
+        if (error) {
+          reject({ status: 500, message: error.message });
+        } else {
+          resolve({ status: 200, result: result });
+        }
+      });
+    });
+  }
 }

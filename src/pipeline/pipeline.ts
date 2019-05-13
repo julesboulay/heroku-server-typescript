@@ -121,10 +121,6 @@ export default function FindCafes(
       )
       .then(
         (photo_details_2D: PhotoDetail[][]): PhotoDetail[] => {
-          console.log(
-            "Photos Recieved From Places: " + photo_details_2D.length
-          );
-
           // Turn 2D Photos Array Into ID Array
           let photo_details_1D: PhotoDetail[] = [];
           for (let i = 0; i < photo_details_2D.length; i++)

@@ -12,14 +12,16 @@ export default class Cafe {
     lat: number,
     lng: number,
     diff: number,
-    marzocco_likelihood = 0.5
+    marzocco_likelihood = 0.01
   ): Promise<DBResponse> {
     if (diff == undefined || isNaN(diff)) diff = 5;
-    var n = lat + diff,
-      s = lat - diff,
-      e = lng + diff * 2,
-      w = lng - diff * 2;
+    const n: number = Number(lat) + Number(diff);
+    const s: number = Number(lat) - Number(diff);
+    const e: number = Number(lng) + Number(diff) * 2;
+    const w: number = Number(lng) - Number(diff) * 2;
 
+    const DEC = 10000;
+    const round: (num: number) => number = num => Math.round(num * DEC) / DEC;
     const query = `
       SELECT
         C.place_id, 
@@ -29,10 +31,10 @@ export default class Cafe {
         C.address
       FROM Cafe C, Evaluation E
       WHERE
-        C.lat < ${n} AND
-        C.lat > ${s} AND
-        C.lng < ${e} AND
-        C.lng > ${w} AND (
+        C.lat < ${round(n)} AND
+        C.lat > ${round(s)} AND
+        C.lng < ${round(e)} AND
+        C.lng > ${round(w)} AND (
         E.evaluation_id IN (
           SELECT EP.evaluation_id
           FROM Evaluation E, EvaluatedPicture EP

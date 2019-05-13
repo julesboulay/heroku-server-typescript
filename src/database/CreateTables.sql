@@ -43,7 +43,7 @@ CREATE TABLE User (
     sign_up_date DATETIME NOT NULL,
 
     PRIMARY KEY(email)
-) ENGINE = INNODB AUTO_INCREMENT=1;
+) ENGINE = INNODB;
 
 CREATE TABLE ConfirmMarzocco(
     place_id VARCHAR(255) NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE ConfirmMarzocco(
     PRIMARY KEY(place_id, email),
     FOREIGN KEY(place_id) REFERENCES Cafe (place_id),
     FOREIGN KEY(email) REFERENCES User (email)
-) ENGINE = INNODB AUTO_INCREMENT=1;
+) ENGINE = INNODB;
 
 CREATE TABLE Post (
     place_id VARCHAR(255) NOT NULL,
@@ -63,4 +63,4 @@ CREATE TABLE Post (
     PRIMARY KEY(place_id),
     FOREIGN KEY(place_id) REFERENCES Cafe(place_id),
     FOREIGN KEY(email) REFERENCES User(email)
-) ENGINE = INNODB AUTO_INCREMENT=1;
+) ENGINE = INNODB;

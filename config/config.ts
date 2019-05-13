@@ -4,7 +4,7 @@ export default function(): Config {
   const DEV_ENV: string = "development";
   const { NODE_ENV = DEV_ENV } = process.env;
 
-  if (NODE_ENV == DEV_ENV) {
+  if (NODE_ENV == "development") {
     const development: Config = {
       google_places_api_key: "AIzaSyCOL-TKrDjemTBuwoNQcnpOFgMavyFErmc",
       secret: "abracadabra",
@@ -32,7 +32,8 @@ export default function(): Config {
         db: "X4oiYHxxD6"
       },
       python_server: {
-        url: "https://unfiltered-hk-python.herokuapp.com/"
+        url: "https://unfiltered-hk-python.herokuapp.com"
+        //url: "http://0.0.0.0:5000"
       }
     };
     return production;
