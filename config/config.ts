@@ -32,8 +32,8 @@ export default function(): Config {
         db: "X4oiYHxxD6"
       },
       python_server: {
-        url: "https://unfiltered-hk-python.herokuapp.com"
-        //url: "http://0.0.0.0:5000"
+        //url: "https://unfiltered-hk-python.herokuapp.com"
+        url: "http://0.0.0.0:5000"
       }
     };
     return production;

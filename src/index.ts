@@ -9,6 +9,17 @@ import ProbRoutes from "./routes/predictions";
 import getDBConnection from "./database/connection";
 import config from "../config/config";
 
+/**
+ * TODO
+ * - Finish Model
+ * - Sort Download Python Requests Order By Cafe's Ratings
+ * - Flutter Client
+ * - Config File & Var for Production
+ *
+ * - Add Splunk logging
+ * - Fix Python Model Loading
+ */
+
 const { PORT = 3000 } = process.env;
 const connection = getDBConnection(config());
 
